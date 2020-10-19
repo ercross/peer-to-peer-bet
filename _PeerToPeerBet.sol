@@ -14,7 +14,7 @@ contract PeerToPeerBet {
     
     struct PlayerBetData {
         uint stakeAmount;
-        uint predictedOutcome;
+        string predictedOutcome;
     }
     
     enum BetCategory {
@@ -25,12 +25,12 @@ contract PeerToPeerBet {
     uint public minimumStakeAmount;
     uint public numberOfPlayers;
     uint public totalStakesAmount;
-    uint8 public outcomeIndex;
+    string public actualOutcome;
     bool public settled;
     string public betStatement;
     address public overseer;
     address public betWinner;
-    address public creator;
+    address payable public creator;
     uint256 public betCreationTime; //now cannot be used due to highly inconsistent wait period associated with mining 
     uint256 public eventStartsIn; //epoch time formatted through the frontend
     BetCategory public betCategory;
@@ -54,20 +54,41 @@ contract PeerToPeerBet {
             eventStartsIn = _eventStartsIn;
             predictedOutcomes = _predictedOutcomes;
             PlayerBetData creatorBetData = PlayerBetData ({
-                stakeAmount = msg.value;
-                predictedOutcome = _predictedOutcome
+                stakeAmount: msg.value;
+                predictedOutcome: _predictedOutcome
             })
         }
         
-    function joinBet(string memory _predictedOutcome, ) public payable {
-        
+    /**
+     * 
+    */
+    function joinBet(string memory _predictedOutcome) public payable {
+      require (msg.value > minimumStakeAmount);  
+      require (players[msg.sender] == "")
+      PlayerBetData playerBetData = playerBetData({
+          predictedOutcome: _predictedOutcome,
+          stakeAmount: msg.value
+      })
+      players[msg.sender] = playerBetData;
+      numberOfPlayers++;
     }
     
-    function settleBet () public {
-        
+    /**
+     * 
+    */
+    function settleBet (string memory _actualOutcome) public {
+        require (msg.sender == overseer)
+        actualOutcome = _actualOutcome;
+        []address winningPlayers = fetchAllWinners(calldata _actualOutcome);
+        payWinners(winningPlayers);
     }
     
+    /**
+     * 
+    */
     function cancelBet() public {
-        
+        require (msg.sender == creator);
+        require (numberOfPlayers == 1); 
+        creator.transfer(players[creator].stakeAmount);
     }
 }
