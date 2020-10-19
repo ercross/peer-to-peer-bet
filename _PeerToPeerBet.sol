@@ -1,8 +1,9 @@
 pragma solidity 0.6.0;
+pragma experimental ABIEncoderV2;
 
 /**
 * @title PeerToPeerBet
-* @notice implements a peer to peer betting system
+* @dev implements a peer to peer betting system
 */
 
 contract PeerToPeerBets {
@@ -11,7 +12,7 @@ contract PeerToPeerBets {
 
 contract PeerToPeerBet {
     
-    struct public storage PlayerBetData {
+    struct PlayerBetData {
         uint stakeAmount;
         uint predictedOutcome;
     }
@@ -21,21 +22,52 @@ contract PeerToPeerBet {
         
     }
     
-    uint public storage totalStakesAmount;
-    uint public storage numberOfPredictedOutcomes;
+    uint public minimumStakeAmount;
     uint public numberOfPlayers;
-    bool public storage settled;
-    string public storage betStatement;
-    address public storage overseer;
-    address public storage creator;
-    string public storage eventDate; //just for record purpose. No actual impact on contract
-    BetCategory public storage betCategory;
-    string[numberOfPredictedOutcomes] storage predictedOutcomes;
-    mapping (address => PlayerBetData) public storage players;
+    uint public totalStakesAmount;
+    uint8 public outcomeIndex;
+    bool public settled;
+    string public betStatement;
+    address public overseer;
+    address public betWinner;
+    address public creator;
+    uint256 public betCreationTime; //now cannot be used due to highly inconsistent wait period associated with mining 
+    uint256 public eventStartsIn; //epoch time formatted through the frontend
+    BetCategory public betCategory;
+    string[] predictedOutcomes;
+    mapping (address => PlayerBetData) public players;
     
-    constructor PeerToPeerBet (
-        BetCategory memory _betCategory, uint memory _numberOfPredictedOutcomes, 
-        ) public {
+    constructor (
+        uint _minimumStakeAmount,
+        string memory _betStatement,
+        uint _eventStartsIn,
+        BetCategory _betCategory, 
+        string[] memory _predictedOutcomes,
+        string memory _predictedOutcome,
+        ) 
+        public {
             creator = msg.sender;
+            numberOfPlayers++;
+            betCategory = _betCategory;
+            minimumStakeAmount = _minimumStakeAmount;
+            betStatement = _betStatement;
+            eventStartsIn = _eventStartsIn;
+            predictedOutcomes = _predictedOutcomes;
+            PlayerBetData creatorBetData = PlayerBetData ({
+                stakeAmount = msg.value;
+                predictedOutcome = _predictedOutcome
+            })
         }
+        
+    function joinBet(string memory _predictedOutcome, ) public payable {
+        
+    }
+    
+    function settleBet () public {
+        
+    }
+    
+    function cancelBet() public {
+        
+    }
 }
